@@ -4,200 +4,127 @@
 <head>
     <meta charset="UTF-8">
     <title>SWAPI</title>
-    <!-- <link rel="stylesheet" type="text/css" href="style.css"> -->
-    <style>
-        #header {
-            background-image: linear-gradient(#323A40, #2894E6);
-            width: 100%;
-            height: 70px;
-            text-align: center;
-            color: #fff;
-            padding: 50px 0;
-        }
-
-        #wrapper {
-            width: 100%;
-            margin: auto;
-            background: #000;
-        }
-
-        .char-list {
-            border: 2px solid #000;
-            padding: 10px;
-            float: left;
-            margin: 10px;
-            color: #fff;
-            background: #323A40;
-            width: 28%;
-            height: auto;
-        }
-
-        .vehicle-div {
-            border: 1px solid #2894E6;
-            padding: 10px;
-            margin-top: 10px;
-            color: #fff;
-            background: #323A40;
-
-        }
-
-        .vehicles-btn {
-            display: block;
-            background: #2894E6;
-            padding: 10px;
-            color: #323A40;
-            width: 50%;
-            margin: 5px 0 15px 0;
-            font-weight: bold;
-            /* margin: auto; */
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 
 <body>
-    <div id="header">
-        <h1>STAR WARS</h1>
-    </div>
+    <button id="startButton">
+        START
+    </button>
     <div id="wrapper"></div>
 </body>
 
-
+<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    crossorigin="anonymous"></script>
 <script>
-    
-    const queryURL = "https://swapi.co/api/people";
-   
-    fetch('https://swapi.co/api/people')
-        .then(function (response) {
-            return response.json();
-        })
-        .then(function (response) {
-            // console.log(response);
-            const characters = response.results;
-            let name, height, mass, skin_color, gender, vehicles;
+    $(document).ready(function () {
 
-            var newList = document.createElement("ul");
+        const queryURL = "https://swapi.co/api/people";
 
-            for (let i = 0; i < characters.length; i++) {
-                name = characters[i].name;
-                height = characters[i].height;
-                mass = characters[i].mass;
-                skin_color = characters[i].skin_color;
-                gender = characters[i].gender;
-                vehicles = characters[i].vehicles;
+        $('#startButton').on('click', function () {
+            $('#startButton').hide(500);
 
-                var newListItem = document.createElement("li");
-                newListItem.id = i;
-                newListItem.className = "char-list";
+            $.ajax({
+                    url: queryURL,
+                    method: "GET"
+                })
+                .then(function (response) {
+                    // console.log(response);
+                    const characters = response.results;
+                    // console.log(characters);
+                    let name, height, mass, skin_color, gender, vehicles;
 
-                if (vehicles.length >= 1) {
-                    newListItem.setAttribute("data-vehicles", vehicles);
-                } else {
-                    newListItem.setAttribute("data-vehicles", "none");
-                }
+                    var charList = $('<ul>');
 
-                newListItem.innerHTML =
-                    `
-                    <p>Name: ${name}</p>
-                    <p>Height: ${height}</p>
-                    <p>Mass: ${mass}</p>
-                    <p>Skin Color:  ${skin_color} </p>
-                    <p>Gender: ${gender}</p>
-                    <p>Number of Vehicles: ${vehicles.length}</p>
-                    <button id="btn-${i}" class="vehicles-btn" data-clicked="unclicked">Show Vehicles</button>`;
+                    characters.forEach((character, index) => {
+                        var charListItem = $('<li>');
+                        charListItem.attr('id', index);
+                        charListItem.attr('class', 'charListItem');
 
-                newList.appendChild(newListItem);
-            }
-            document.querySelector('#wrapper').appendChild(newList);
+                        if (character.vehicles.length >= 1) {
+                            charListItem.attr("data-vehicles", character.vehicles);
+                        } else {
+                            charListItem.attr("data-vehicles", "none");
+                        }
+                        // console.log(charListItem);
+                        charListItem.html(
+                            `
+                            <p>Name: ${character.name}</p>
+                            <p>Height: ${character.height}</p>
+                            <p>Mass: ${character.mass}</p>
+                            <p>Skin Color:  ${character.skin_color} </p>
+                            <p>Gender: ${character.gender}</p>
+                            <p>Number of Vehicles: ${character.vehicles.length}</p>
+                            <button id="btn-${index}" class="vehicles-btn" data-clicked="unclicked">Show Vehicles</button>`
+                        );
 
-            var classname = document.getElementsByClassName("vehicles-btn");
+                        // console.log(charListItem);
+                        if (charListItem.attr('data-vehicles') === "none") {
+                            charListItem.children('.vehicles-btn').hide();
+                        }
+                        charList.append(charListItem);
+                        // console.log(charList);
 
-            Array.from(classname).forEach(function (element) {
-                element.addEventListener('click', myFunction);
-            });
+                    });
 
-            function myFunction() {
+                    $('#wrapper').append(charList);
 
-                //reference for the list item that contais the clicked button
-                const listItem = this.parentNode;
-                
-                //creating a new div for vehicles
-                var vehiclesDiv = document.createElement('div');
-                vehiclesDiv.id = "vehiclesDiv";
-                
-                //check if the button is clicked already or not!, if no proceed and get the data. 
-                //Otherwise it means that it is clicked so we go to else to hide it
-                this.setAttribute("data-clicked", "clicked");
+                });
 
-                //splitting the vehicles string to get the vehicle's urls
-                let availableVehicles = listItem.getAttribute("data-vehicles").split(',');
 
-                //check if this character has vehicles or not
-                if (availableVehicles != 'none') {
-                    for (var i = 0; i < availableVehicles.length; i++) {
 
-                        //fetching data from the api
-                        fetch(availableVehicles[i])
-                            .then(function (response) {
-                                return response.json();
-                            })
-                            .then(function (response) {
-
-                                //creating a new div for the new vehicle
-                                var newVehicle = document.createElement('div');
-                                newVehicle.className = "vehicle-div";
-
-                                //destructureing response object.
-                                var {
-                                    name: vname,
-                                    cargo_capacity: vcapacity,
-                                    length: vlength,
-                                    model: vmodel,
-                                    vehicle_class: vclass
-                                } = response;
-
-                                //creating and formatting the vehicle's data
-                                newVehicle.innerHTML =
-                                    `<p>Vehicle Name: ${vname}</p>
-                                    <p>Cargo Capacity: ${vcapacity}</p>
-                                    <p>Vehicle Length: ${vlength}</p>
-                                    <p>Vehicle Model: ${vmodel}</p>
-                                    <p>Vehicle Class: ${vclass}</p>`;
-
-                                //appending the new vehicle to the vehicles div (the wrapper)
-                                vehiclesDiv.appendChild(newVehicle);
-
-                            });
-
-                        //appending the vehicles div to the list item(character div)  
-                        listItem.appendChild(vehiclesDiv);
-                    }
-                    // var hideButton = document.createElement("button");
-                    // hideButton.className = "vehicles-btn";
-                    // hideButton.innerHTML = "Hide Vehicles";
-                    // vehiclesDiv.appendChild(hideButton);
-                    this.innerHTML = "Hide Vehicles";
-
-                    // console.log(this);
-                    this.addEventListener('click', hideFunction);
-                //    this.setAttribute("data-clicked", "clicked");
-
-                } else {
-                    alert("This Character has no Vechicles!!!");
-
-                }
-                document.getElementById('vehiclesDiv').style.display = 'block';
-
-                return
-            }
-
-            function hideFunction(){
-                console.log(this);
-                document.getElementById('vehiclesDiv').style.display = 'none';
-                this.innerHTML = "Show Vehicles";
-                return;
-
-            }
         });
+        $(document).on('click', '.vehicles-btn', function (e) {
+
+            if ($(this).html() === 'Show Vehicles') {
+                const vehicles = $(this).parent('.charListItem').attr('data-vehicles').split(",");
+
+
+                var vehiclesList = $('<ul>');
+                vehiclesList.attr('class', 'vehiclesList');
+
+                vehicles.forEach((vehicle, index) => {
+                    $.ajax({
+                            url: vehicle,
+                            method: "GET"
+                        })
+                        .then(function (response) {
+                            // console.log(response);
+
+                            var vehiclesListItem = $('<li>');
+                            // console.log(i);
+                            vehiclesListItem.attr('id', index);
+                            vehiclesListItem.attr('class', 'vehiclesListItem');
+
+                            vehiclesListItem.html(
+                                `
+                                <p class="vehicle-header">Vehicle ${index+1}</p>
+                                <p>Vehicle Name: ${response.name}</p>
+                                <p>Cargo Capacity: ${response.cargo_capacity}</p>
+                                <p>Vehicle Length: ${response.length}</p>
+                                <p>Vehicle Model: ${response.model}</p>
+                                <p>Vehicle Manufacturer: ${response.manufacturer}</p>`
+                            );
+
+
+                            vehiclesList.append(vehiclesListItem);
+
+                        });
+
+                });
+                $(this).parent('.charListItem').append(vehiclesList);
+                $(this).html('Hide Vehicles');
+            }
+            else{
+                $(this).parent('.charListItem').children('.vehiclesList').hide(300);
+                $(this).html("Show Vehicles");
+            }
+
+
+        });
+
+    });
+
 </script>
 
 </html>
