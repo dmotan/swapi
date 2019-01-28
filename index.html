@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>SWAPI</title>
+    <!-- linking css -->
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 
@@ -14,8 +15,10 @@
     <div id="wrapper"></div>
 </body>
 
+<!-- including JQuery Library -->
 <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
     crossorigin="anonymous"></script>
+
 <script>
     $(document).ready(function () {
 
@@ -24,19 +27,19 @@
         $('#startButton').on('click', function () {
             $('#startButton').hide(500);
 
+            //hitting the api to get the data from
             $.ajax({
                     url: queryURL,
                     method: "GET"
                 })
                 .then(function (response) {
-                    // console.log(response);
+
                     const characters = response.results;
-                    // console.log(characters);
-                    let name, height, mass, skin_color, gender, vehicles;
 
                     var charList = $('<ul>');
 
                     characters.forEach((character, index) => {
+
                         var charListItem = $('<li>');
                         charListItem.attr('id', index);
                         charListItem.attr('class', 'charListItem');
@@ -46,7 +49,7 @@
                         } else {
                             charListItem.attr("data-vehicles", "none");
                         }
-                        // console.log(charListItem);
+
                         charListItem.html(
                             `
                             <p>Name: ${character.name}</p>
@@ -58,12 +61,12 @@
                             <button id="btn-${index}" class="vehicles-btn" data-clicked="unclicked">Show Vehicles</button>`
                         );
 
-                        // console.log(charListItem);
+
                         if (charListItem.attr('data-vehicles') === "none") {
                             charListItem.children('.vehicles-btn').hide();
                         }
                         charList.append(charListItem);
-                        // console.log(charList);
+
 
                     });
 
@@ -72,28 +75,31 @@
                 });
 
 
-
         });
+
         $(document).on('click', '.vehicles-btn', function (e) {
 
+            //checking if the button will act as show or hide?
             if ($(this).html() === 'Show Vehicles') {
+
                 const vehicles = $(this).parent('.charListItem').attr('data-vehicles').split(",");
 
-
                 var vehiclesList = $('<ul>');
+
                 vehiclesList.attr('class', 'vehiclesList');
 
                 vehicles.forEach((vehicle, index) => {
+
                     $.ajax({
                             url: vehicle,
                             method: "GET"
                         })
                         .then(function (response) {
-                            // console.log(response);
 
                             var vehiclesListItem = $('<li>');
-                            // console.log(i);
+
                             vehiclesListItem.attr('id', index);
+
                             vehiclesListItem.attr('class', 'vehiclesListItem');
 
                             vehiclesListItem.html(
@@ -106,25 +112,23 @@
                                 <p>Vehicle Manufacturer: ${response.manufacturer}</p>`
                             );
 
-
                             vehiclesList.append(vehiclesListItem);
 
                         });
-
                 });
+
                 $(this).parent('.charListItem').append(vehiclesList);
+
                 $(this).html('Hide Vehicles');
-            }
-            else{
+
+            } else {
+
                 $(this).parent('.charListItem').children('.vehiclesList').hide(300);
+
                 $(this).html("Show Vehicles");
             }
-
-
         });
-
     });
-
 </script>
 
 </html>
