@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SWAPI</title>
+    <!-- <link rel="stylesheet" type="text/css" href="style.css"> -->
+    <style>
+        :root {
+            --red: #A32638;
+            --teal: #008a90;
+            --blue: #004380;
+            --gray: #9a989a;
+            --gray2: #363d45;
+            --orange: #e7842e;
+            --body-font: "chaparral-pro", Georgia, Times, "Times New Roman", serif ;
+            --header-font: "trade-gothic-next", Arial, Helvetica, sans-serif;
+        }
+        html, body {
+            background: #fff;
+            width: 100%;
+            height: 100%;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        #startButton {
+            width: 30%;
+            height: 10%;
+            padding: 20px 0;
+            margin: auto;
+            background: var(--red);
+            color: #fff;
+            border: none;
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #header {
+            background-image: linear-gradient(#323A40, #2894E6);
+            width: 100%;
+            height: 70px;
+            text-align: center;
+            color: #fff;
+            padding: 50px 0;
+        }
+
+        #wrapper {
+            width: 100%;
+            margin: auto;
+            background: #000;
+        }
+
+        .charListItem {
+            /* border: 2px solid var; */
+            padding: 10px;
+            float: left;
+            margin: 10px;
+            color: #fff;
+            background: #A32638;
+            width: 28%;
+            min-height: 270px;
+            height: auto;
+        }
+
+        .vehiclesListItem {
+            /* border: 1px solid #2894E6; */
+            padding: 10px;
+            margin-top: 10px;
+            color:var(--red);
+            background: var(--gray);
+
+        }
+
+        .vehicles-btn {
+            display: block;
+            background: var(--teal);
+            padding: 10px;
+            color: #fff;
+            width: 50%;
+            margin: 5px 0 15px 0;
+            font-weight: bold;
+            /* margin: auto; */
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        .vehiclesList {
+            padding-left: 0;
+        }
+
+        .vehicle-header {
+            background: var(--teal);
+            color: #fff;
+            width: 80%;
+            padding: 10px;
+            margin: auto;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <button id="startButton">
+        START
+    </button>
+    <div id="wrapper"></div>
+</body>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    crossorigin="anonymous"></script>
+<script>
+    $(document).ready(function () {
+
+        const queryURL = "https://swapi.co/api/people";
+
+        $('#startButton').on('click', function () {
+            $('#startButton').hide(500);
+
+            $.ajax({
+                    url: queryURL,
+                    method: "GET"
+                })
+                .then(function (response) {
+                    // console.log(response);
+                    const characters = response.results;
+                    // console.log(characters);
+                    let name, height, mass, skin_color, gender, vehicles;
+
+                    var charList = $('<ul>');
+
+                    characters.forEach((character, index) => {
+                        var charListItem = $('<li>');
+                        charListItem.attr('id', index);
+                        charListItem.attr('class', 'charListItem');
+
+                        if (character.vehicles.length >= 1) {
+                            charListItem.attr("data-vehicles", character.vehicles);
+                        } else {
+                            charListItem.attr("data-vehicles", "none");
+                        }
+                        // console.log(charListItem);
+                        charListItem.html(
+                            `
+                            <p>Name: ${character.name}</p>
+                            <p>Height: ${character.height}</p>
+                            <p>Mass: ${character.mass}</p>
+                            <p>Skin Color:  ${character.skin_color} </p>
+                            <p>Gender: ${character.gender}</p>
+                            <p>Number of Vehicles: ${character.vehicles.length}</p>
+                            <button id="btn-${index}" class="vehicles-btn" data-clicked="unclicked">Show Vehicles</button>`
+                        );
+
+                        // console.log(charListItem);
+                        if (charListItem.attr('data-vehicles') === "none") {
+                            charListItem.children('.vehicles-btn').hide();
+                        }
+                        charList.append(charListItem);
+                        // console.log(charList);
+
+                    });
+
+                    $('#wrapper').append(charList);
+
+                });
+
+
+
+        });
+        $(document).on('click', '.vehicles-btn', function (e) {
+
+            if ($(this).html() === 'Show Vehicles') {
+                const vehicles = $(this).parent('.charListItem').attr('data-vehicles').split(",");
+
+
+                var vehiclesList = $('<ul>');
+                vehiclesList.attr('class', 'vehiclesList');
+
+                vehicles.forEach((vehicle, index) => {
+                    $.ajax({
+                            url: vehicle,
+                            method: "GET"
+                        })
+                        .then(function (response) {
+                            // console.log(response);
+
+                            var vehiclesListItem = $('<li>');
+                            // console.log(i);
+                            vehiclesListItem.attr('id', index);
+                            vehiclesListItem.attr('class', 'vehiclesListItem');
+
+                            vehiclesListItem.html(
+                                `
+                                <p class="vehicle-header">Vehicle ${index+1}</p>
+                                <p>Vehicle Name: ${response.name}</p>
+                                <p>Cargo Capacity: ${response.cargo_capacity}</p>
+                                <p>Vehicle Length: ${response.length}</p>
+                                <p>Vehicle Model: ${response.model}</p>
+                                <p>Vehicle Manufacturer: ${response.manufacturer}</p>`
+                            );
+
+
+                            vehiclesList.append(vehiclesListItem);
+
+                        });
+
+                });
+                $(this).parent('.charListItem').append(vehiclesList);
+                $(this).html('Hide Vehicles');
+            }
+            else{
+                $(this).parent('.charListItem').children('.vehiclesList').hide(300);
+                $(this).html("Show Vehicles");
+            }
+
+
+        });
+
+    });
+
+</script>
+
+</html>
